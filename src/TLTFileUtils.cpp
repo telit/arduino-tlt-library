@@ -1,4 +1,4 @@
-/*Copyright (C) 2020 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
 /*    See LICENSE file in the project root for full license information.     */
 
 /**
@@ -12,13 +12,12 @@
      
 
   @version 
-    1.0.0
+    1.1.0
   
   @note
     Dependencies:
     ME310.h
     TLTUtils.h
-    Modem.h
 
   @author
     
@@ -28,7 +27,7 @@
 */
 
 
-#include "TLTFileUtils.h"
+#include <TLTFileUtils.h>
 
 TLTFileUtils::TLTFileUtils(ME310* me310, bool debug) : _count(0), _files(""), _debug(debug)
 {

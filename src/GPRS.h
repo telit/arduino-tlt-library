@@ -1,5 +1,6 @@
-/*===============================================================================================*/
-/*         >>> Copyright (C) Telit Communications S.p.A. Italy All Rights Reserved. <<<          */
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*    See LICENSE file in the project root for full license information.     */
+
 /*!
   @file
     GPRS.h
@@ -10,7 +11,7 @@
     
   
   @version 
-    1.0.0
+    1.1.0
 
   @note
     Dependencies:
@@ -27,8 +28,8 @@
 #define __GPRS__H
 /* Include files ================================================================================*/
 #include <IPAddress.h>
-#include "ME310.h"
-#include "TLT.h"
+#include <ME310.h>
+#include <TLT.h>
 
 /* Using namespace ================================================================================*/
 using namespace std;

@@ -136,6 +136,7 @@ TLT_NetworkStatus_t TLT::begin(const char* pin, const char* ipProt, const char* 
         if (synchronous) 
         {
             unsigned long start = millis();
+
             while (ready() == 0) 
             {
                 if (_timeout && !((millis() - start) < _timeout)) 
@@ -222,7 +223,6 @@ int TLT::ready()
     {
         return 0;
     }
-    
     switch (_readyState)
     {
         case READY_STATE_SET_ERROR_DISABLED:
