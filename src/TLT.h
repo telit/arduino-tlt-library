@@ -1,5 +1,6 @@
-/*===============================================================================================*/
-/*         >>> Copyright (C) Telit Communications S.p.A. Italy All Rights Reserved. <<<          */
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*    See LICENSE file in the project root for full license information.     */
+
 /*!
   @file
     TLT.h
@@ -10,7 +11,7 @@
     This class managements the most important functionality of connection function.
   
   @version 
-    1.0.0
+    1.1.0
 
   @note
     Dependencies:
@@ -27,11 +28,10 @@
 #ifndef __TLT__H
 #define __TLT__H
 /* Include files ================================================================================*/
-#include "ME310.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <string>
-
+#include <ME310.h>
 /* Using namespace ================================================================================*/
 using namespace std;
 using namespace me310;

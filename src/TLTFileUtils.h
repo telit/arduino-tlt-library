@@ -1,5 +1,6 @@
-/*===============================================================================================*/
-/*         >>> Copyright (C) Telit Communications S.p.A. Italy All Rights Reserved. <<<          */
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*    See LICENSE file in the project root for full license information.     */
+
 /*!
   @file
     TLTFileUtils.h
@@ -10,7 +11,7 @@
     
   
   @version 
-    1.0.0
+    1.1.0
 
   @note
     Dependencies:
@@ -29,7 +30,7 @@
 
 #pragma once
 /* Include files ================================================================================*/
-#include "ME310.h"
+#include <ME310.h>
 #include <Arduino.h>
 /* Using namespace ================================================================================*/
 using namespace std;

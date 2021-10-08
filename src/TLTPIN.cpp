@@ -1,5 +1,6 @@
-/*Copyright (C) 2020 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
 /*    See LICENSE file in the project root for full license information.     */
+
 
 /**
   @file
@@ -12,7 +13,7 @@
      
 
   @version 
-    1.0.0
+    1.1.0
   
   @note
     Dependencies:
@@ -27,8 +28,8 @@
     08/02/2021
 */
 
-#include "ME310.h"
-#include "TLTPIN.h"
+#include <ME310.h>
+#include <TLTPIN.h>
 
 //!\brief Class Constructor
 /*! \details 

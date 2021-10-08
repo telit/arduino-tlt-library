@@ -1,5 +1,6 @@
-/*Copyright (C) 2020 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
 /*    See LICENSE file in the project root for full license information.     */
+
 
 /**
   @file
@@ -13,7 +14,7 @@
      In particular: send and read SMS.
 
   @version 
-    1.0.0
+    1.1.0
   
   @note
     Dependencies:
@@ -26,7 +27,7 @@
     08/02/2021
 */
 
-#include "TLTSMS.h"
+#include <TLTSMS.h>
 
 #define NYBBLETOHEX(x) ((x)<=9?(x)+'0':(x)-10+'A')
 #define HEXTONYBBLE(x) ((x)<='9'?(x)-'0':(x)+10-'A')
@@ -224,7 +225,7 @@ This method add the destination address in _toBuffer.
 int TLTSMS::beginSMS(const char* to)
 {
     setCharset();
-
+    _toBuffer.remove(0, _toBuffer.length());
     if (_charset==SMS_CHARSET_UCS2 && *to == '+')
     {
         _toBuffer += '0';
@@ -295,18 +296,17 @@ This method ends SMS and sends it.
 int TLTSMS::endSMS()
 {
     int r;
-
     if (_smsTxActive)
     {
         // Echo remaining content of UTF8 buffer, empty if no conversion
-            _indexUTF8 = 0;
+        _indexUTF8 = 0;
         char toda[] = "145";
-        _me310->send_short_message(_toBuffer.c_str(), toda, (char*) _dataBuffer.c_str(),ME310::TOUT_3SEC);
+        _rc = _me310->send_short_message(_toBuffer.c_str(), toda, (char*) _dataBuffer.c_str(),ME310::TOUT_3SEC);
         if (!_synch)
         {
-            r = moduleReady();
+            //_rc = moduleReady();
         }
-        return r;
+        return _rc;
     }
     else
     {
@@ -584,5 +584,24 @@ int TLTSMS::moduleReady()
     else
     {
         return 0;
+    }
+}
+
+//!\brief Sets message format.
+/*! \details 
+This method sets the format of SMS messages to be used.
+ *\param value 0 if is in PDU mode, 1 if is in text mode.
+ *\return returns true if success, false if error.
+ */
+bool TLTSMS::setMessageFormat(int value)
+{
+    _rc = _me310->message_format(value);
+    if(_rc ==  ME310::RETURN_VALID)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }

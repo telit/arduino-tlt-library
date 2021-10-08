@@ -1,6 +1,6 @@
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*    See LICENSE file in the project root for full license information.     */
 
-/*===============================================================================================*/
-/*         >>> Copyright (C) Telit Communications S.p.A. Italy All Rights Reserved. <<<          */
 /*!
   @file
     TLTMDM.h
@@ -11,7 +11,7 @@
     
   
   @version 
-    1.0.0
+    1.1.0
 
   @note
     Dependencies:
@@ -30,15 +30,16 @@
 
 /* Include files ================================================================================*/
 
-#include "TLT.h"
-#include "TLTSMS.h"
-#include "GPRS.h"
-#include "TLTClient.h"
-#include "TLTScanner.h"
-#include "TLTPIN.h"
-#include "TLTSSLClient.h"
-#include "TLTUDP.h"
-#include "TLTFileUtils.h"
+#include <TLT.h>
+#include <TLTSMS.h>
+#include <GPRS.h>
+#include <TLTClient.h>
+#include <TLTScanner.h>
+#include <TLTPIN.h>
+#include <TLTSSLClient.h>
+#include <TLTUDP.h>
+#include <TLTFileUtils.h>
+#include <TLTGNSS.h>
 /* Using namespace ================================================================================*/
 
 #endif //__TLTMDM__H

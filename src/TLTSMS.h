@@ -1,5 +1,6 @@
-/*===============================================================================================*/
-/*         >>> Copyright (C) Telit Communications S.p.A. Italy All Rights Reserved. <<<          */
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*    See LICENSE file in the project root for full license information.     */
+
 /*!
   @file
     TLTSMS.h
@@ -11,7 +12,7 @@
     In particular: send and read SMS.
   
   @version 
-    1.0.0
+    1.1.0
 
   @note
     Dependencies:
@@ -30,7 +31,7 @@
 #define __TLTSMS__H
 
 /* Include files ================================================================================*/
-#include "ME310.h"
+#include <ME310.h>
 #include <Arduino.h>
 #include <Stream.h>
 /* Using namespace ================================================================================*/
@@ -66,6 +67,7 @@ class TLTSMS : public Stream
         void flush();
         void clean(int flag = TLT_SMS_CLEAR_READ_SENT);
         size_t print(const String &);
+        bool setMessageFormat(int value);
         ~TLTSMS(){}
     
     private:

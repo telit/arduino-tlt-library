@@ -1,4 +1,4 @@
-/*Copyright (C) 2020 Telit Communications S.p.A. Italy - All Rights Reserved.*/
+/*Copyright (C) 2021 Telit Communications S.p.A. Italy - All Rights Reserved.*/
 /*    See LICENSE file in the project root for full license information.     */
 
 /**
@@ -12,7 +12,7 @@
      
 
   @version 
-    1.0.0
+    1.1.0
   
   @note
     Dependencies:
@@ -26,11 +26,7 @@
   @date
     08/03/2021
 */
-
-#include "TLTRootCerts.h"
-
-#include "TLTSSLClient.h"
-
+#include <TLTSSLClient.h>
 
 enum
 {

@@ -12,7 +12,7 @@
      
 
   @version 
-    1.0.0
+    1.1.0
   
   @note
     Dependencies:
@@ -24,7 +24,7 @@
   @date
     08/03/2021
 */
-#include "GPRS.h"
+#include <GPRS.h>
 
 /*! \enum GPRS status
   \brief Enum of GPRS status of internal state machine
