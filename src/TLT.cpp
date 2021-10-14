@@ -12,16 +12,15 @@
      
 
   @version 
-    1.0.0
+    1.2.0
   
   @note
     Dependencies:
     ME310.h
     TLT.h
-    Modem.h
 
-  @author
-    
+ @author
+    Cristina Desogus
 
   @date
     07/26/2021
@@ -75,6 +74,7 @@ enum
 TLT::TLT(ME310* me310, bool debug) : _state(ERROR), _readyState(0), _pin(NULL), _apn(""), _username(""), _password(""), _timeout(0)
 {
     _me310 = me310;
+    _debug = debug;
 }
 
 //! \brief Begin the modem.
@@ -222,6 +222,10 @@ int TLT::ready()
     if (ready == 0) 
     {
         return 0;
+    }
+    if(_debug)
+    {
+        printReadyState();
     }
     switch (_readyState)
     {
@@ -505,6 +509,10 @@ int TLT::ready()
             }
             else
             {
+                if(_debug)
+                {
+                    Serial.println(_response.c_str());
+                }
                 if(_response.endsWith("0"))
                 {
                     _me310->read_gprs_network_registration_status();
@@ -892,4 +900,148 @@ bool TLT::checkSetPhoneFunctionality(int value)
       i++;
     }
     return false;
+}
+
+//!\brief Get debug parameter value.
+/*! \details 
+This method gets debug parameter value.
+ *\return debug parameter value.
+ */
+bool TLT::getDebug()
+{
+    return _debug;
+}
+
+//!\brief Set debug parameter value.
+/*! \details 
+This method sets debug parameter value.
+ *\param debug true to enable debugging, false disable debugging.
+ */
+void TLT::setDebug(bool debug)
+{
+    _debug = debug;
+}
+
+//!\brief Get ready state.
+/*! \details 
+This method gets ready state.
+ *\return ready state parameter value.
+ */
+int TLT::getReadyState()
+{
+    return _readyState;
+}
+
+//!\brief Print ready state string.
+/*! \details 
+This method prints ready state string.
+ */
+void TLT::printReadyState()
+{
+    switch (_readyState)
+    {
+        case READY_STATE_SET_ERROR_DISABLED:
+            Serial.println("READY_STATE_SET_ERROR_DISABLED");
+            break;
+        case READY_STATE_WAIT_SET_ERROR_DISABLED:
+            Serial.println("READY_STATE_WAIT_SET_ERROR_DISABLED");
+            break;
+        case READY_STATE_SET_MINIMUM_FUNCTIONALITY_MODE:
+            Serial.println("READY_STATE_SET_MINIMUM_FUNCTIONALITY_MODE");
+            break;
+        case READY_STATE_WAIT_SET_MINIMUM_FUNCTIONALITY_MODE:
+            Serial.println("READY_STATE_WAIT_SET_MINIMUM_FUNCTIONALITY_MODE");
+            break;
+        case READY_STATE_CHECK_SIM:
+            Serial.println("READY_STATE_CHECK_SIM");
+            break;
+        case READY_STATE_WAIT_CHECK_SIM_RESPONSE:
+            Serial.println("READY_STATE_WAIT_CHECK_SIM_RESPONSE");
+            break;
+        case READY_STATE_UNLOCK_SIM:
+            Serial.println("READY_STATE_UNLOCK_SIM");
+            break;
+        case READY_STATE_WAIT_UNLOCK_SIM_RESPONSE:
+            Serial.println("READY_STATE_WAIT_UNLOCK_SIM_RESPONSE");
+            break;
+        case READY_STATE_DETACH_DATA:
+            Serial.println("READY_STATE_DETACH_DATA");
+            break;
+        case READY_STATE_WAIT_DETACH_DATA:
+            Serial.println("READY_STATE_WAIT_DETACH_DATA");
+            break;
+        case READY_STATE_SET_PREFERRED_MESSAGE_FORMAT:
+            Serial.println("READY_STATE_SET_PREFERRED_MESSAGE_FORMAT");
+            break;
+        case READY_STATE_WAIT_SET_PREFERRED_MESSAGE_FORMAT_RESPONSE:
+            Serial.println("READY_STATE_WAIT_SET_PREFERRED_MESSAGE_FORMAT_RESPONSE");
+            break;
+        case READY_STATE_SET_HEX_MODE:
+            Serial.println("READY_STATE_SET_HEX_MODE");
+            break;
+        case READY_STATE_WAIT_SET_HEX_MODE_RESPONSE:
+            Serial.println("READY_STATE_WAIT_SET_HEX_MODE_RESPONSE");
+            break;
+        case READY_STATE_SET_AUTOMATIC_TIME_ZONE:
+            Serial.println("READY_STATE_SET_AUTOMATIC_TIME_ZONE");
+            break;
+        case READY_STATE_WAIT_SET_AUTOMATIC_TIME_ZONE_RESPONSE:
+            Serial.println("READY_STATE_WAIT_SET_AUTOMATIC_TIME_ZONE_RESPONSE");
+            break;
+        case READY_STATE_SET_APN:
+            Serial.println("READY_STATE_SET_APN");
+            break;
+        case READY_STATE_SET_APN_AUTH:
+            Serial.println("READY_STATE_SET_APN_AUTH");
+            break;
+        case READY_STATE_WAIT_SET_APN_AUTH:
+            Serial.println("READY_STATE_WAIT_SET_APN_AUTH");
+            break;
+        case READY_STATE_SET_FULL_FUNCTIONALITY_MODE:
+            Serial.println("READY_STATE_SET_FULL_FUNCTIONALITY_MODE");
+            break;
+        case READY_STATE_WAIT_SET_FULL_FUNCTIONALITY_MODE:
+            Serial.println("READY_STATE_WAIT_SET_FULL_FUNCTIONALITY_MODE");
+            break;
+        case READY_STATE_CHECK_REGISTRATION:
+            Serial.println("READY_STATE_CHECK_REGISTRATION");
+            break;
+        case READY_STATE_WAIT_CHECK_REGISTRATION_RESPONSE:
+            Serial.println("READY_STATE_WAIT_CHECK_REGISTRATION_RESPONSE");
+            break;
+        case READY_STATE_CHECK_CONTEXT_ACTIVATION:
+            Serial.println("READY_STATE_CHECK_CONTEXT_ACTIVATION");
+            break;
+        case READY_STATE_WAIT_CHECK_CONTEXT_ACTIVATION:
+            Serial.println("READY_STATE_WAIT_CHECK_CONTEXT_ACTIVATION");
+            break;
+        case READY_STATE_DONE:
+            Serial.println("READY_STATE_DONE");
+            break;
+        default:
+            break;
+    }
+}
+
+//!\brief Get IMEI value.
+/*! \details 
+This method gets IMEI value.
+ *\return string of IMEI value.
+ */
+String TLT::getIMEI()
+{
+    String IMEI;
+    int i = 0;
+    _me310->request_psn_identification_echo();
+    while(_me310->buffer_cstr(i) != NULL)
+    {
+        String response = _me310->buffer_cstr(i);
+        if(response.startsWith("#CGSN:"))
+        {
+            int pos = response.indexOf(":");
+            IMEI = response.substring(pos + 2);
+        }
+        i++;
+    }
+    return IMEI;
 }

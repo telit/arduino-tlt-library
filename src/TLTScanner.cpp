@@ -12,12 +12,11 @@
      
 
   @version 
-    1.0.0
+    1.0.1
   
   @note
     Dependencies:
     TLTScanner.h
-    Modem.h
 
   @author
     Cristina Desogus
@@ -83,16 +82,21 @@ This method reads the signal quality of service and return it.
 String TLTScanner::getSignalStrength()
 {
     String response;
+    int i = 0;
     _rc = _me310->signal_quality();
-    if (_rc = ME310::RETURN_VALID)
+    if (_rc == ME310::RETURN_VALID)
     {
-        response = _me310->buffer_cstr(1);
-        int firstSpaceIndex = response.indexOf(' ');
-        int lastCommaIndex = response.lastIndexOf(',');
-
-        if (firstSpaceIndex != -1 && lastCommaIndex != -1)
+        while(_me310->buffer_cstr(i) != NULL)
         {
-            return response.substring(firstSpaceIndex + 1, lastCommaIndex);
+            response = _me310->buffer_cstr(i);
+            int firstSpaceIndex = response.indexOf(' ');
+            int lastCommaIndex = response.lastIndexOf(',');
+
+            if (firstSpaceIndex != -1 && lastCommaIndex != -1)
+            {
+                return response.substring(firstSpaceIndex + 1, lastCommaIndex);
+            }
+            i++;
         }
     }
     return "";
@@ -105,44 +109,50 @@ This method reads the list of available networks.
  */
 String TLTScanner::readNetworks()
 {
+    int j = 0;
     String response;
+    String result;
+
     _rc = _me310->test_operator_selection();
-    if (_rc = ME310::RETURN_VALID)
+    if(_rc == ME310::RETURN_VALID)
     {
-        response = _me310->buffer_cstr(1);
-        String result;
-        unsigned int responseLength = response.length();
-
-        for(unsigned int i = 0; i < responseLength; i++)
+        while(_me310->buffer_cstr(j) != NULL)
         {
-            for (; i < responseLength; i++)
+            response = _me310->buffer_cstr(j);
+            
+            unsigned int responseLength = response.length();
+
+            for(unsigned int i = 0; i < responseLength; i++)
             {
-                if (response[i] == '"')
+                for (; i < responseLength; i++)
                 {
-                    result += "> ";
-                    break;
+                    if (response[i] == '"')
+                    {
+                        result += "> ";
+                        break;
+                    }
                 }
-            }
-            for (i++; i < responseLength; i++)
-            {
-                if (response[i] == '"')
+                for (i++; i < responseLength; i++)
                 {
-                    result += '\n';
-                    break;
+                    if (response[i] == '"')
+                    {
+                        result += '\n';
+                        break;
+                    }
+
+                    result += response[i];
                 }
 
-                result += response[i];
-            }
-
-            for (i++; i < responseLength; i++)
-            {
-                if (response[i] == ')')
+                for (i++; i < responseLength; i++)
                 {
-                    break;
+                    if (response[i] == ')')
+                    {
+                        break;
+                    }
                 }
             }
+            j++;
         }
-        return result;
     }
-    return "";
+    return result;
 }

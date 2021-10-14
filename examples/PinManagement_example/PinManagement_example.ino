@@ -6,7 +6,7 @@
     - TLTMDM.h
 
   @brief
-    This example enables you to change or remove the PIN number of a SIM card inserted into a board.n
+    This example enables you to change or remove the PIN of a SIM card inserted into a board.
 
   @details
 
@@ -43,8 +43,9 @@ void setup() {
   // initialize serial communications and wait for port to open:
   Serial.begin(115200);
   myME310->begin(115200);
-
-  delay(2000);
+  delay(1000);
+  myME310->powerOn(ON_OFF);
+  delay(5000);
   
   Serial.println("Change PIN example\n");
   PINManager.begin();

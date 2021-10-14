@@ -44,6 +44,8 @@ void setup() {
   // initialize serial communications and wait for port to open:
   Serial.begin(115200);
   myME310->begin(115200);
+  delay(1000);
+  myME310->powerOn(ON_OFF);
   delay(5000);
   Serial.println("Starting Arduino web client.");
   // connection state
