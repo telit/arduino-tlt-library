@@ -37,8 +37,9 @@ ME310 myME310;
 void setup() {
   Serial.begin(115200);
   myME310.begin(115200);
-
-  delay(2000);
+  delay(1000);
+  myME310.powerOn(ON_OFF);
+  delay(5000);
   for (int i = 0; i < 80; i++) Serial.print("*");
   Serial.println();
   Serial.println("This sketch allows you to select your preferred");

@@ -11,7 +11,7 @@
     This class managements the most important functionality of connection function.
   
   @version 
-    1.1.0
+    1.2.0
 
   @note
     Dependencies:
@@ -72,6 +72,14 @@ class TLT
 
         TLT_NetworkStatus_t getStatus();
 
+        bool getDebug();
+        void setDebug(bool debug);
+
+        int getReadyState();
+        void printReadyState();
+
+        String getIMEI();
+
     private:
 
         struct tm parse_time(String time);
@@ -90,6 +98,8 @@ class TLT
         int _baund;
         String _response;
         unsigned long _timeout;
+        bool _debug;
+
         ME310* _me310;
         ME310::return_t _rc;
 };

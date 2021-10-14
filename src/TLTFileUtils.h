@@ -8,10 +8,10 @@
   @brief
     TLT File Utils class
   @details
-    
-  
-  @version 
-    1.1.0
+
+
+  @version
+    1.1.1
 
   @note
     Dependencies:
@@ -41,7 +41,7 @@ using namespace me310;
 class TLTFileUtils
 {
     public:
-    
+
         TLTFileUtils(ME310* me310, bool debug = false);
 
         bool begin(const bool restart);
@@ -49,7 +49,7 @@ class TLTFileUtils
 
         int existFile(const String filename);
 
-        uint32_t fileCount() const { return _count; };
+        uint32_t fileCount();
         size_t listFiles(String list[]) const;
         uint32_t listFile(const String filename);
 
@@ -59,16 +59,15 @@ class TLTFileUtils
 
         uint32_t createFile(const String filename, const char buf[], uint32_t size);
 
-        uint32_t appendFile(const String filename, const String& buf)                     { return downloadFile(filename, (char*)buf.c_str(), buf.length(), true); }
-        uint32_t appendFile(const String filename, const char buf[], const uint32_t size) { return downloadFile(filename, (char*)buf, size, true); }
-
         bool deleteFile(const String filename);
         int deleteFiles();
 
-        uint32_t readFile(const String filename, String* content);
-        uint32_t readFile(const String filename, uint8_t* content);
+        uint32_t readFile(const String filename, String &content);
+        uint32_t readFile(const String filename, uint8_t *content);
 
         uint32_t freeSpace();
+
+        void printFiles();
 
     private:
         int _count;

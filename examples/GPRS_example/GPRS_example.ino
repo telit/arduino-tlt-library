@@ -56,6 +56,8 @@ void setup()
   Serial.begin(115200);
   myME310->begin(115200);
   delay(2000);
+  myME310->powerOn(ON_OFF);
+  delay(5000);
 }
 
 void loop() {

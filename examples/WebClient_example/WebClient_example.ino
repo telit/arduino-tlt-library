@@ -9,8 +9,8 @@
     Web client
 
   @details
-    This sketch connects to a website using SSL through the board.\n 
-    Specifically, this example downloads the URL "www.telit.com" and prints it to the Serial monitor.
+    This sketch connects to a server using sockets through the board.\n 
+    Specifically, this example connects to echo server "modules.telit.com" and prints the response to the Serial monitor.
 
   @version
     1.0.0
@@ -42,8 +42,9 @@ void setup() {
   // initialize serial communications and wait for port to open:
   Serial.begin(115200);
   myME310->begin(115200);
-  
-  delay(2000);
+  delay(1000);
+  myME310->powerOn(ON_OFF);
+  delay(5000);
 
   Serial.println(F("Starting Arduino web client."));
   // connection state

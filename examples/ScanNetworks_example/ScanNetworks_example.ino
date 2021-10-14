@@ -29,22 +29,21 @@
 
 ME310* myME310 = new ME310();
 
-TLT TLTAccess(myME310);     // include a 'true' parameter to enable debugging
+TLT TLTAccess(myME310, true);     // include a 'true' parameter to enable debugging
 TLTScanner scannerNetworks(myME310);
 
 // Save data variables
 String IMEI = "";
 
-// serial monitor result messages
-String errortext = "ERROR";
-
-char APN[]= "APN";
+char APN[]= "apn";
 
 void setup() {
   // initialize serial communications and wait for port to open:
   Serial.begin(115200);
   myME310->begin(115200);
-  delay(2000);
+  delay(1000);
+  myME310->powerOn(ON_OFF);
+  delay(5000);
   Serial.println("NB IoT/LTE Cat M1 networks scanner");
   scannerNetworks.begin();
 
@@ -55,7 +54,7 @@ void setup() {
   // If your SIM has PIN, pass it as a parameter of begin() in quotes
   while (!connected)
   {
-    if (TLTAccess.begin(0, APN, true) == READY)
+    if (TLTAccess.begin(NULL, APN, true) == READY)
     {
       connected = true;
     }
@@ -69,12 +68,8 @@ void setup() {
   // get modem parameters
   // IMEI, modem unique identifier
   Serial.print("Modem IMEI: ");
-  IMEI = myME310->request_imei_software_version();
-  IMEI.replace("\n", "");
-  if (IMEI != NULL)
-  {
-    Serial.println(IMEI);
-  }
+  IMEI = TLTAccess.getIMEI();
+  Serial.println(IMEI.c_str());
 }
 
 void loop() {
@@ -90,7 +85,7 @@ void loop() {
   Serial.println(" [0-31]");
 
   // scan for existing networks, displays a list of networks
-  Serial.println("Scanning available networks. May take some seconds.");
+  Serial.println("Scanning available networks. This may take some seconds.");
   Serial.println(scannerNetworks.readNetworks());
   // wait ten seconds before scanning again
   delay(10000);

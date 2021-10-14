@@ -40,11 +40,12 @@ void setup() {
 
   pinMode(ON_OFF, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(ON_OFF, LOW);
   // initialize serial communications and wait for port to open:
   Serial.begin(115200);
   myME310->begin(115200);
-  delay(2000);
+  delay(1000);
+  myME310->powerOn(ON_OFF);
+  delay(5000);
   Serial.println(F("SMS Messages Receiver"));
   // connection state
   bool connected = false;

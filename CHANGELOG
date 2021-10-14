@@ -1,5 +1,10 @@
 TLT 0.0.0 - ????.??.??
 
+TLT 1.2.0 - 2021.10.14
+* GNSS formatting utilities and example
+* file utils improvements and example
+* better ME310 device management in sketches
+
 TLT 1.1.0 - 2021.10.08
 
 * Add GNSS class utility
