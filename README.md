@@ -4,7 +4,7 @@ This library allows to use a Telit Charlie board to connect to the Internet over
 
 It is a loose porting effort of https://github.com/arduino-libraries/MKRNB Arduino library, providing the same interfaces when possible.
 
-This library requires the ME310 Arduino Library **greater or equal than 2.4.0** version to work.
+This library requires the ME310 Arduino Library **greater or equal than 2.6.0** version to work.
 
 
 ## Download and install the ME310 Library
