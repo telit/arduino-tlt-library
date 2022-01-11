@@ -11,7 +11,7 @@
     
   
   @version 
-    1.1.0
+    1.3.0
 
   @note
     Dependencies:
@@ -41,8 +41,8 @@ using namespace me310;
 class TLTClient : public Client
 {
     public:
-        TLTClient(ME310* me310, bool synch = true);
-        TLTClient(ME310* me310, int socket, bool synch);
+        TLTClient(ME310* me310, bool synch = true, bool debug = false);
+        TLTClient(ME310* me310, int socket, bool synch, bool debug = false);
         virtual ~TLTClient();
         virtual int ready();
 
@@ -70,6 +70,11 @@ class TLTClient : public Client
 
         virtual void handleUrc(const String& urc);
 
+        bool getDebug();
+        void setDebug(bool debug);
+        int getReadyState();
+        void printReadyState();
+
     private:
         int connect();
         int moduleReady();
@@ -82,6 +87,7 @@ class TLTClient : public Client
         const char* _host;
         uint16_t _port;
         bool _ssl;
+        bool _debug;
 
         bool _writeSync;
         String _response;

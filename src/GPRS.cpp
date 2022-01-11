@@ -12,7 +12,7 @@
      
 
   @version 
-    1.1.0
+    1.3.0
   
   @note
     Dependencies:
@@ -44,7 +44,7 @@ enum
 /*!
  * \param me310 pointer of ME310 class
  */
-GPRS::GPRS(ME310* me310) : _status(IDLE), _timeout(0)
+GPRS::GPRS(ME310* me310, bool debug) : _status(IDLE), _timeout(0), _debug(debug)
 {
     _me310 = me310;
 }
@@ -140,6 +140,11 @@ int GPRS::ready()
         return 0;
     }
     ready = 0;
+
+    if(_debug)
+    {
+        printReadyState();
+    }
     switch (_state)
     {
         case GPRS_STATE_IDLE:
@@ -291,5 +296,70 @@ int GPRS::moduleReady()
     else
     {
         return 0;
+    }
+}
+
+/*DEBUG*/
+//!\brief Get debug parameter value.
+/*! \details 
+This method gets debug parameter value.
+ *\return debug parameter value.
+*/
+bool GPRS::getDebug()
+{
+    return _debug;
+}
+
+//!\brief Set debug parameter value.
+/*! \details 
+This method sets debug parameter value.
+ *\param debug true to enable debugging, false disable debugging.
+ */
+void GPRS::setDebug(bool debug)
+{
+    _debug = debug;
+}
+
+//!\brief Get ready state.
+/*! \details 
+This method gets ready state.
+ *\return ready state parameter value.
+ */
+int GPRS::getReadyState()
+{
+    return _state;
+}
+
+//!\brief Print ready state string.
+/*! \details 
+This method prints ready state string.
+ */
+void GPRS::printReadyState()
+{
+    switch (_state)
+    {
+        case GPRS_STATE_IDLE:
+            Serial.println("GPRS_STATE_IDLE");
+            break;
+        case GPRS_STATE_ATTACH:
+            Serial.println("GPRS_STATE_ATTACH");
+            break;
+        case GPRS_STATE_WAIT_ATTACH_RESPONSE:
+            Serial.println("GPRS_STATE_WAIT_ATTACH_RESPONSE");
+            break;
+        case GPRS_STATE_CHECK_ATTACHED:
+            Serial.println("GPRS_STATE_CHECK_ATTACHED");
+            break;
+        case GPRS_STATE_WAIT_CHECK_ATTACHED_RESPONSE:
+            Serial.println("GPRS_STATE_WAIT_CHECK_ATTACHED_RESPONSE");
+            break;
+        case GPRS_STATE_DEATTACH:
+            Serial.println("GPRS_STATE_DEATTACH");
+            break;
+        case GPRS_STATE_WAIT_DEATTACH_RESPONSE:
+            Serial.println("GPRS_STATE_WAIT_DEATTACH_RESPONSE");
+            break;
+        default:
+            break;
     }
 }

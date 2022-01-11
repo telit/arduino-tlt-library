@@ -12,7 +12,7 @@
      
 
   @version 
-    1.1.0
+    1.3.0
   
   @note
     Dependencies:
@@ -54,13 +54,14 @@ Constructor
  * \param me310 pointer of ME310 class.
  * \param _synch synchronize the system
  */
-TLTSSLClient::TLTSSLClient(ME310* me310, bool synch) :
-  TLTClient(me310, synch),
-  _RCs(TLT_ROOT_CERTS),
+TLTSSLClient::TLTSSLClient(ME310* me310, bool synch, bool debug) :
+  TLTClient(me310, synch, debug),
+  _RCs((TLTRootCert*)TLT_ROOT_CERTS),
   _numRCs(TLT_NUM_ROOT_CERTS),
   _customRootCerts(false),
   _version(4),
-  _SNI(1)
+  _SNI(1), 
+  _debug(debug)
 {
   _me310 = me310;
 }
@@ -73,13 +74,14 @@ Constructor
  * \param SNI SNI value
  * \param _synch synchronize the system
  */
-TLTSSLClient::TLTSSLClient(ME310* me310, int version, int SNI,  bool synch) :
-  TLTClient(me310, synch),
+TLTSSLClient::TLTSSLClient(ME310* me310, int version, int SNI,  bool synch, bool debug) :
+  TLTClient(me310, synch, debug),
   _RCs(TLT_ROOT_CERTS),
   _numRCs(TLT_NUM_ROOT_CERTS),
   _customRootCerts(false),
   _version(version),
-  _SNI(SNI)
+  _SNI(SNI),
+  _debug(debug)
 {
   _me310 = me310;
 }
@@ -95,14 +97,15 @@ Constructor
  * \param SNI SNI value
  * \param _synch synchronize the system
  */
-TLTSSLClient::TLTSSLClient(ME310* me310, const TLTRootCert* myRCs, int myNumRCs, int version, int SNI, bool synch) :
-  TLTClient(me310, synch),
-  _RCs(myRCs),
+TLTSSLClient::TLTSSLClient(ME310* me310, const TLTRootCert* myRCs, int myNumRCs, int version, int SNI, bool synch, bool debug) :
+  TLTClient(me310, synch, debug),
+  _RCs((TLTRootCert*)myRCs),
   _numRCs(myNumRCs),
   _customRootCerts(true),
   _customRootCertsLoaded(false),
   _version(version),
-  _SNI(SNI)
+  _SNI(SNI),
+  _debug(debug)
 {
   _me310 = me310;
 }
@@ -131,6 +134,12 @@ int TLTSSLClient::ready()
       // a command is still running
       return 0;
   }
+
+  if(_debug)
+  {
+      printReadyState();
+  }
+
   switch (_state)
   {
     case SSL_CLIENT_STATE_ENABLE:
@@ -156,9 +165,17 @@ int TLTSSLClient::ready()
     case SSL_CLIENT_STATE_MANAGE_PROFILE:
     {
       _rc = _me310->ssl_configure_security_param(1,0,1);
-      _state = SSL_CLIENT_STATE_WAIT_MANAGE_PROFILE_RESPONSE;
-      ready = 0;
-      break;
+      if(_rc == ME310::RETURN_VALID)
+      {
+        _state = SSL_CLIENT_STATE_WAIT_MANAGE_PROFILE_RESPONSE;
+        ready = 0;
+        break;
+      }
+      else
+      {
+        ready = 2;
+        break;
+      }
     }
     case SSL_CLIENT_STATE_WAIT_MANAGE_PROFILE_RESPONSE:
     {
@@ -194,30 +211,58 @@ int TLTSSLClient::ready()
       break;
     }
     case SSL_CLIENT_STATE_LOAD_ROOT_CERT:
-    {
-        if (_RCs[_certIndex].size)
+    {     
+      if(_certIndex < _numRCs)
+      {
+        if (_RCs[_certIndex].size > 0)
         {
           // load the next root cert
-          _rc = _me310->ssl_security_data(1,1, 1, _RCs[_certIndex].size, 0, (char*) _RCs[_certIndex].data, ME310::TOUT_1MIN);
-          if (_rc != ME310::RETURN_VALID)
+          if((char*) _RCs[_certIndex].data != NULL)
           {
-              // failure
-              ready = -1;
+            _rc = _me310->ssl_security_data(1, 1, 1, _RCs[_certIndex].size, 0, (char*) _RCs[_certIndex].data, ME310::TOUT_1MIN);
+            if (_rc != ME310::RETURN_VALID)
+            {
+                // failure
+                _state = SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE;
+                ready = 2;
+            }
+            else
+            {
+                _state = SSL_CLIENT_STATE_WAIT_LOAD_ROOT_CERT_RESPONSE;
+                ready = 0;
+            }
           }
           else
           {
-              _state = SSL_CLIENT_STATE_WAIT_LOAD_ROOT_CERT_RESPONSE;
-              ready = 0;
+              // failure
+              _state = SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE;
+              ready = 2;
           }
         }
         else
         {
           // remove the next root cert name
           _rc = _me310->ssl_security_data(1,0,_RCs[_certIndex].dataType);
-          _state = SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE;
-          ready = 0;
+          if(_rc != ME310::RETURN_VALID)
+          {
+            // failure
+            _state = SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE;
+            ready = 2;
+          }
+          else
+          {
+            _state = SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE;
+            ready = 0;
+          }          
         }
         break;
+      }
+      else
+      {
+        _state = SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE;
+        ready = 0;
+        break;
+      }
     }
     case SSL_CLIENT_STATE_WAIT_LOAD_ROOT_CERT_RESPONSE:
     {
@@ -240,6 +285,10 @@ int TLTSSLClient::ready()
     case SSL_CLIENT_STATE_CLOSE_SOCKET:
     {
       ready = 0;
+      break;
+    }
+    default:
+    {
       break;
     }
   }
@@ -281,10 +330,31 @@ This method iterates the list of certificates.
  */
 int TLTSSLClient::iterateCerts()
 {
-  _certIndex++;
-  if (_certIndex == _numRCs)
+  if(_numRCs > 0)
   {
-    // all certs loaded
+    if (_certIndex == _numRCs-1)
+    {
+       // all certs loaded
+      if (_customRootCerts)
+      {
+        _customRootCertsLoaded = true;
+      }
+      else
+      {
+        _defaultRootCertsLoaded = true;
+      }
+      
+      _certIndex = 0;
+    }
+    else
+    {
+      _certIndex++;
+        // load next
+      _state = SSL_CLIENT_STATE_LOAD_ROOT_CERT;
+    }
+  }
+  else
+  {
     if (_customRootCerts)
     {
       _customRootCertsLoaded = true;
@@ -293,11 +363,8 @@ int TLTSSLClient::iterateCerts()
     {
       _defaultRootCertsLoaded = true;
     }
-  }
-  else
-  {
-    // load next
-    _state = SSL_CLIENT_STATE_LOAD_ROOT_CERT;
+    
+    _certIndex = 0;
   }
   return 0;
 }
@@ -317,5 +384,84 @@ int TLTSSLClient::moduleReady()
     else
     {
       return 0;
+    }
+}
+
+/*DEBUG*/
+//!\brief Get debug parameter value.
+/*! \details 
+This method gets debug parameter value.
+ *\return debug parameter value.
+*/
+bool TLTSSLClient::getDebug()
+{
+    return _debug;
+}
+
+//!\brief Set debug parameter value.
+/*! \details 
+This method sets debug parameter value.
+ *\param debug true to enable debugging, false disable debugging.
+ */
+void TLTSSLClient::setDebug(bool debug)
+{
+    _debug = debug;
+}
+
+//!\brief Get ready state.
+/*! \details 
+This method gets ready state.
+ *\return ready state parameter value.
+ */
+int TLTSSLClient::getReadyState()
+{
+    return _state;
+}
+//!\brief Print ready state string.
+/*! \details 
+This method prints ready state string.
+ */
+void TLTSSLClient::printReadyState()
+{
+    switch (_state)
+    {
+        case SSL_CLIENT_STATE_ENABLE:
+            Serial.println("SSL_CLIENT_STATE_ENABLE");
+            break;
+        case SSL_CLIENT_STATE_WAIT_ENABLE_RESPONSE:
+            Serial.println("SSL_CLIENT_STATE_WAIT_ENABLE_RESPONSE");
+            break;
+        case SSL_CLIENT_STATE_LOAD_ROOT_CERT:
+            Serial.println("SSL_CLIENT_STATE_LOAD_ROOT_CERT");
+            break;
+        case SSL_CLIENT_STATE_WAIT_LOAD_ROOT_CERT_RESPONSE:
+            Serial.println("SSL_CLIENT_STATE_WAIT_LOAD_ROOT_CERT_RESPONSE");
+            break;
+        case SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE:
+            Serial.println("SSL_CLIENT_STATE_WAIT_DELETE_ROOT_CERT_RESPONSE");
+            break;
+        case SSL_CLIENT_STATE_MANAGE_PROFILE:
+            Serial.println("SSL_CLIENT_STATE_MANAGE_PROFILE");
+            break;
+        case SSL_CLIENT_STATE_WAIT_MANAGE_PROFILE_RESPONSE:
+            Serial.println("SSL_CLIENT_STATE_WAIT_MANAGE_PROFILE_RESPONSE");
+            break;
+        case SSL_CLIENT_STATE_MANAGE_PROFILE_2:
+            Serial.println("SSL_CLIENT_STATE_MANAGE_PROFILE_2");
+            break;
+        case SSL_CLIENT_STATE_WAIT_MANAGE_PROFILE_RESPONSE_2:
+            Serial.println("SSL_CLIENT_STATE_WAIT_MANAGE_PROFILE_RESPONSE_2");
+            break;
+        case SSL_CLIENT_STATE_CLOSE_SOCKET:
+            Serial.println("SSL_CLIENT_STATE_CLOSE_SOCKET");
+            break;
+        case SSL_CLIENT_STATE_CONNECT:
+            Serial.println("SSL_CLIENT_STATE_CONNECT");
+            break;
+        case SSL_CLIENT_STATE_WAIT_CONNECT:
+            Serial.println("SSL_CLIENT_STATE_WAIT_CONNECT");
+            break;
+        default:
+            break;
     }
 }

@@ -118,14 +118,20 @@ void setup() {
     Serial.print("Size file: ");
     Serial.println(size);
 
-    uint8_t contentFileUint[size+1] = {0};
-    uint8_t tmp_contFileUint[(size*2)+1] = {0};
-    Serial.println("Read File Uint8: <");
-    fileUtils.readFile(fileBin, contentFileUint);
-    myME310->ConvertBufferToIRA(contentFileUint, tmp_contFileUint, size);
-    Serial.println((char*)tmp_contFileUint);
-    Serial.println(">");
-
+    if(size > 0)
+    {
+      uint8_t contentFileUint[size+1] = {0};
+      if(((size*2)+1) < INT8_MAX)
+      {
+         int tmp_size = (size*2)+1;
+        uint8_t tmp_contFileUint[tmp_size] = {0};
+        Serial.println("Read File Uint8: <");
+        fileUtils.readFile(fileBin, contentFileUint);
+        myME310->ConvertBufferToIRA(contentFileUint, tmp_contFileUint, size);
+        Serial.println((char*)tmp_contFileUint);
+        Serial.println(">");
+      }
+    }
     Serial.println("Delete File.");
     fileUtils.deleteFile(fileBin);
 

@@ -11,7 +11,7 @@
 
 
   @version
-    1.1.1
+    1.3.0
 
   @note
     Dependencies:
@@ -32,6 +32,7 @@
 /* Include files ================================================================================*/
 #include <ME310.h>
 #include <Arduino.h>
+#include <vector>
 /* Using namespace ================================================================================*/
 using namespace std;
 using namespace me310;
@@ -50,7 +51,8 @@ class TLTFileUtils
         int existFile(const String filename);
 
         uint32_t fileCount();
-        size_t listFiles(String list[]) const;
+        size_t listFiles(String files[]) const;
+        size_t listFiles(std::vector<String> *files)const;
         uint32_t listFile(const String filename);
 
         uint32_t downloadFile(const String filename,  char buf[], const uint32_t size, const bool append);

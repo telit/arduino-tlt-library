@@ -10,9 +10,9 @@
 
   @details
 
-  @version 
+  @version
     1.0.0
-  
+
   @note
 
   @author
@@ -46,7 +46,7 @@ void setup() {
   delay(1000);
   myME310->powerOn(ON_OFF);
   delay(5000);
-  
+
   Serial.println("Change PIN example\n");
   PINManager.begin();
 
@@ -65,7 +65,7 @@ void setup() {
         auth = true;
         PINManager.setPINUsed(true);
         Serial.println(oktext);
-      } 
+      }
       else
       {
         // if PIN code was incorrected
@@ -96,7 +96,6 @@ void setup() {
     {
       // the worst case, PIN and PUK are locked
       Serial.println("PIN and PUK locked. Use PIN2/PUK2 in a mobile phone.");
-      while (true);
     }
     else
     {
@@ -121,7 +120,6 @@ void setup() {
   {
     // error connection
     Serial.println(errortext);
-    while (true);
   }
 }
 

@@ -12,7 +12,7 @@
      
 
   @version 
-    1.2.0
+    1.3.0
   
   @note
     Dependencies:
@@ -132,7 +132,6 @@ TLT_NetworkStatus_t TLT::begin(const char* pin, const char* ipProt, const char* 
         _state = IDLE;
         _readyState = READY_STATE_SET_ERROR_DISABLED;
         restart = false;
-
         if (synchronous) 
         {
             unsigned long start = millis();
@@ -162,18 +161,17 @@ This method checks network access status calling gprs_network_registration_statu
  */
 int TLT::isAccessAlive()
 {
-  String response;
   int i = 0;
   _rc = _me310->read_gprs_network_registration_status();
   if(_rc == ME310::RETURN_VALID)
   {
-      while(_me310->buffer_cstr(i) != NULL)
+      char* resp = (char*) _me310->buffer_cstr(i);
+      while(resp != NULL)
       {
-        if((strcmp(_me310->buffer_cstr(i), "+CREG: 0,1")!= 0) && (strcmp(_me310->buffer_cstr(i), "+CREG: 0,5")!= 0))
+        if((strcmp(resp, "+CREG: 0,1")!= 0) && (strcmp(resp, "+CREG: 0,5")!= 0))
         {
             return 1;
         }
-        i++;
       }
   }  
   return 0;
@@ -221,6 +219,7 @@ int TLT::ready()
     int ready = moduleReady();
     if (ready == 0) 
     {
+        delay(2000);
         return 0;
     }
     if(_debug)
@@ -231,10 +230,17 @@ int TLT::ready()
     {
         case READY_STATE_SET_ERROR_DISABLED:
         {
-            _me310->report_mobile_equipment_error(2);
-            _readyState = READY_STATE_WAIT_SET_ERROR_DISABLED;
-            ready = 0;
-            break;
+            _rc = _me310->report_mobile_equipment_error(2);
+            if(_rc == ME310::RETURN_VALID)
+            {
+                _readyState = READY_STATE_WAIT_SET_ERROR_DISABLED;
+                ready = 0;
+            }
+            else
+            {
+                ready = 2;
+            } 
+            break;           
         }
         case READY_STATE_WAIT_SET_ERROR_DISABLED:
         {
@@ -252,7 +258,7 @@ int TLT::ready()
         }
         case READY_STATE_SET_MINIMUM_FUNCTIONALITY_MODE:
         {
-            if(checkSetPhoneFunctionality(0))
+            if(checkSetPhoneFunctionality(1))
             {
                 _readyState = READY_STATE_WAIT_SET_MINIMUM_FUNCTIONALITY_MODE;
                 ready = 0;
@@ -260,11 +266,19 @@ int TLT::ready()
             }
             else
             {
-                _me310->set_phone_functionality(0);
+                _rc = _me310->set_phone_functionality(1);
                 delay(5000);
-                _readyState = READY_STATE_WAIT_SET_MINIMUM_FUNCTIONALITY_MODE;
-                ready = 0;
-                break;
+                if(_rc == ME310::RETURN_VALID)
+                {
+                    _readyState = READY_STATE_WAIT_SET_MINIMUM_FUNCTIONALITY_MODE;
+                    ready = 0;
+                    break;
+                }
+                else
+                {
+                    ready = 2;
+                    break;
+                }
             }
         }
         case READY_STATE_WAIT_SET_MINIMUM_FUNCTIONALITY_MODE:
@@ -276,6 +290,7 @@ int TLT::ready()
             }
             else 
             {
+               
                 _readyState = READY_STATE_CHECK_SIM;
                 ready = 0;
             }
@@ -283,10 +298,17 @@ int TLT::ready()
         }
         case READY_STATE_CHECK_SIM:
         {
+            int i = 0;
             _me310->read_enter_pin();
-            if(strcmp(_me310->buffer_cstr(2), "OK") == 0)
+            char* resp = (char*) _me310->buffer_cstr(i);
+            while(resp != NULL)
             {
-                _response = _me310->buffer_cstr(1);
+                if(strcmp(resp, "OK") == 0)
+                {
+                    _response = _me310->buffer_cstr(1);
+                }
+                resp = (char*) _me310->buffer_cstr(i);
+                i++;
             }
             _readyState = READY_STATE_WAIT_CHECK_SIM_RESPONSE;
             ready = 0;
@@ -351,9 +373,16 @@ int TLT::ready()
         }
         case READY_STATE_DETACH_DATA:
         {
-            _me310->ps_attach_detach(0);
-            _readyState = READY_STATE_WAIT_DETACH_DATA;
-            ready = 0;
+            _rc = _me310->ps_attach_detach(0);
+            if(_rc == ME310::RETURN_VALID)
+            {
+                _readyState = READY_STATE_WAIT_DETACH_DATA;
+                ready = 0;
+            }
+            else
+            {
+                ready = 1;
+            }
             break;
         }
         case READY_STATE_WAIT_DETACH_DATA:
@@ -571,11 +600,20 @@ int TLT::ready()
         }
         case READY_STATE_CHECK_CONTEXT_ACTIVATION:
         {
-            _me310->context_activation(1,1);
-            _response = _me310->buffer_cstr(1);
-            _readyState = READY_STATE_WAIT_CHECK_CONTEXT_ACTIVATION;
-            ready = 0;
-            break;
+            _rc = _me310->context_activation(1,1);
+            if(_rc == ME310::RETURN_VALID)
+            {
+                _response = _me310->buffer_cstr(1);
+                _readyState = READY_STATE_WAIT_CHECK_CONTEXT_ACTIVATION;
+                ready = 0;
+                break;
+            }
+            else
+            {
+                ready = 2;
+                break;
+            }
+            
         }
         case READY_STATE_WAIT_CHECK_CONTEXT_ACTIVATION:
         {
@@ -627,23 +665,37 @@ unsigned long TLT::getTime()
     {
         response.remove(dashIndex);
     }
+    else
+    {
+        return 0;
+    }
     now = parse_time(response);
     if (now.tm_year != 0)
     {
         time_t result = mktime(&now);
         time_t delta = ((response.charAt(26) - '0') * 10 + (response.charAt(27) - '0')) * (15 * 60);
 
-        if (response.charAt(25) == '-')
+        if(result != -1)
         {
-            result += delta;
+            if (response.charAt(25) == '-')
+            {
+                result += delta;
+            }
+            else if (response.charAt(25) == '+')
+            {
+                result -= delta;
+            }
+            return result;
         }
-        else if (response.charAt(25) == '+')
+        else
         {
-            result -= delta;
+            return 0;
         }
-        return result;
     }
-    return 0;
+    else
+    {
+        return 0;
+    }
 }
 
 //! \brief Get local time
@@ -667,7 +719,14 @@ unsigned long TLT::getLocalTime()
     if (now.tm_year != 0)
     {
         time_t result = mktime(&now);
-        return result;
+        if(result != -1)
+        {
+            return result;
+        }
+        else
+        {
+            return 0;
+        }
     }
     return 0;
 }
@@ -778,54 +837,40 @@ This method converts the time string in tm struct.
  */
 struct tm TLT::parse_time(String time)
 {
-    struct tm now;
+    struct tm now = {};
     string tmp_str;
     tmp_str = time.c_str();
-    char expData[2];
+    char expData[3] = {0};
     if(time.startsWith("+CCLK"))
     {
-        int len = tmp_str.copy(expData, 2, 8);
-        if(len != 0)
-        {
-          expData[len] = '\0';
-          now.tm_year = atoi(expData);          
-        }
-        memset(expData, 0, 2);
-        len = tmp_str.copy(expData, 2, 11);        
-        if(len != 0)
-        {
-          expData[len] = '\0';
-          int mon = atoi(expData);
-          now.tm_mon = mon -1;
-        }
-        memset(expData, 0, 2);
-        len = tmp_str.copy(expData, 2, 14);        
-        if(len != 0)
-        {          
-          expData[len] = '\0';
-          now.tm_mday = atoi(expData);
-        }
-        memset(expData, 0, 2);
-        len = tmp_str.copy(expData, 2, 17);        
-        if(len != 0)
-        {
-          expData[len] = '\0';
-          now.tm_hour = atoi(expData);
-        }
-        memset(expData, 0, 2);
-        len = tmp_str.copy(expData, 2, 20);        
-        if(len != 0)
-        {
-          expData[len] = '\0';
-          now.tm_min = atoi(expData);
-        }
-        memset(expData, 0, 2);
-        len = tmp_str.copy(expData, 2, 23);        
-        if(len != 0)
-        {
-          expData[len] = '\0';
-          now.tm_sec = atoi(expData);
-        }
+        char *timePtr = (char*) time.c_str();
+
+        memcpy(expData, timePtr+8, 2);
+        now.tm_year = atoi(expData);
+
+
+        memset(expData, 0, sizeof(expData));
+        memcpy(expData, timePtr+11, 2);
+        int mon = atoi(expData);
+        now.tm_mon = mon -1;
+
+
+        memset(expData, 0, sizeof(expData));
+        memcpy(expData,timePtr+14, 2);
+        now.tm_mday = atoi(expData);
+
+        memset(expData, 0, sizeof(expData));
+        memcpy(expData, timePtr+17, 2);
+        now.tm_hour = atoi(expData);
+
+        memset(expData, 0, sizeof(expData));
+        memcpy(expData, timePtr+20, 2);
+        now.tm_min = atoi(expData);
+
+        memset(expData, 0, sizeof(expData));
+        memcpy(expData, timePtr+20, 2);
+        now.tm_sec = atoi(expData);
+
     }
     else 
     {
@@ -835,7 +880,6 @@ struct tm TLT::parse_time(String time)
         now.tm_hour = 0;
         now.tm_min = 0;
         now.tm_sec = 0;
-        return now;
     }
     return now;
 }
@@ -884,20 +928,27 @@ This method checks set phone functionality.
  */
 bool TLT::checkSetPhoneFunctionality(int value)
 {
+
     int i = 0;
     string response;
     string tmp_str = "+CFUN: ";
     tmp_str.append(std::to_string(value));
-    _me310->read_set_phone_functionality();
-    while(_me310->buffer_cstr(i) != NULL)
+    
+    _rc = _me310->read_set_phone_functionality();
+    if(_rc == ME310::RETURN_VALID)
     {
-      response = _me310->buffer_cstr(i);
-      size_t foundString = response.find(tmp_str);
-      if(foundString != string::npos)
-      {
-         return true;
-      } 
-      i++;
+        char* tmp_buf = (char*) _me310->buffer_cstr(i);
+        while(tmp_buf != NULL)
+        {
+            response = tmp_buf;
+            size_t foundString = response.find(tmp_str);
+            if(foundString != string::npos)
+            {
+                return true;
+            }
+            i++;
+            tmp_buf = (char*) _me310->buffer_cstr(i);
+        }
     }
     return false;
 }

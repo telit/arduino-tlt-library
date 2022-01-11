@@ -13,7 +13,7 @@
      
 
   @version 
-    1.1.0
+    1.3.0
   
   @note
     Dependencies:
@@ -148,7 +148,7 @@ int TLTSocketBuffer::read(int socket, uint8_t* data, size_t length, bool ssl)
 {
     int avail = available(socket, ssl);
 
-    if (!avail) 
+    if (avail == -1) 
     {
         return 0;
     }

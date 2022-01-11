@@ -12,7 +12,7 @@
 
 
   @version
-    1.1.1
+    1.3.0
 
   @note
     Dependencies:
@@ -28,6 +28,7 @@
 
 
 #include <TLTFileUtils.h>
+#include <vector>
 
 TLTFileUtils::TLTFileUtils(ME310* me310, bool debug) : _count(0), _files(""), _debug(debug)
 {
@@ -80,17 +81,17 @@ int TLTFileUtils::existFile(const String filename)
 {
     _getFileList();
     _countFiles();
-    String files[_count];
-
+    std::vector<String> *files = new std::vector<String>;
     int num = listFiles(files);
-
     for (int i = 0; i<num; i++)
     {
-        if (files[i]==filename)
+        if(files->at(i) == filename)
         {
-          return 1;
+            delete(files);
+            return 1;
         }
     }
+    delete(files);
     return 0;
 }
 
@@ -102,7 +103,7 @@ void TLTFileUtils::_countFiles()
 
     if (list.length() > 0)
     {
-        for (int index = list.indexOf('#M2MLIST: '); index != -1; index = list.indexOf('#M2MLIST: '))
+        for (int index = list.indexOf("#M2MLIST: "); index != -1; index = list.indexOf("#M2MLIST: "))
         {
           int end = list.indexOf("\r\n", index);
           int comma;
@@ -118,6 +119,33 @@ void TLTFileUtils::_countFiles()
     _count = len;
 }
 
+size_t TLTFileUtils::listFiles(std::vector<String> *files) const
+{
+    String list = _files;
+    int index;
+    int end = 0;
+    if (_count == 0)
+        return 0;
+
+    size_t n = 0;
+    for (index = list.indexOf(": "); index != -1; index = list.indexOf(": "))
+    {
+        end = list.indexOf("\r\n", index);
+        int comma;
+        String file = list.substring(index + 2, end);
+        comma = file.indexOf(",");
+        if ( comma > 0)
+        {
+          files->push_back(file.substring(1, comma-1)); /*start from 1 to comma - 1 to remove quotes */
+          n++;
+        }
+        list.remove(0, end);
+        
+    }
+    return n;
+}
+
+
 size_t TLTFileUtils::listFiles(String files[]) const
 {
     String list = _files;
@@ -127,24 +155,17 @@ size_t TLTFileUtils::listFiles(String files[]) const
         return 0;
 
     size_t n = 0;
-
-    for (index = list.indexOf('#M2MLIST: '); index != -1; index = list.indexOf('#M2MLIST: '))
+    for (index = list.indexOf(": "); index != -1; index = list.indexOf(": "))
     {
         end = list.indexOf("\r\n", index);
         int comma;
-        String file = list.substring(index + 1, end);
-
-        /*Retrieve only files, in the format
-        "filename",size
-        */
+        String file = list.substring(index + 2, end);
         comma = file.indexOf(",");
         if ( comma > 0)
         {
-          files[n++] = file.substring(1, comma -1 ); /*start from 1 to comma - 1 to remove quotes */
+          files[n++] = file.substring(1, comma-1); /*start from 1 to comma - 1 to remove quotes */
         }
-
         list.remove(0, end);
-
     }
     return n;
 }
@@ -187,7 +208,8 @@ uint32_t TLTFileUtils::createFile(const String filename, const char buf[], uint3
 uint32_t TLTFileUtils::readFile(const String filename, String &content)
 {
     int size = listFile(filename);
-    if (!size) {
+    if (!size)
+    {
         return 0;
     }
 
@@ -198,7 +220,6 @@ uint32_t TLTFileUtils::readFile(const String filename, String &content)
         return content.length();
     }
     return 0;
-    
 }
 
 uint32_t TLTFileUtils::readFile(const String filename, uint8_t *content)
@@ -212,8 +233,15 @@ uint32_t TLTFileUtils::readFile(const String filename, uint8_t *content)
     _rc = _me310->m2m_read(filename.c_str());
     if(_rc == ME310::RETURN_CONTINUE )
     {
-        memcpy(content, _me310->buffer_cstr_raw(), size);
-        return size;
+        if(_me310->buffer_cstr_raw() != NULL)
+        {
+            memcpy(content, _me310->buffer_cstr_raw(), size);
+            return size;
+        }
+        else
+        {
+            return 0;
+        }
     }
     return 0;
 }
@@ -242,15 +270,20 @@ bool TLTFileUtils::deleteFile(const String filename)
 int TLTFileUtils::deleteFiles()
 {
     int n = 0;
-    String files[_count];
-
-    int num = listFiles(files);
-
-    while (_count > 0)
+    if(_count != 0)
     {
-        n += deleteFile(files[_count - 1]);
+        std::vector<String> *files = new std::vector<String>;
+        int num = listFiles(files);
+        if(num > 0)
+        {
+            while (_count > 0)
+            {
+                String filename = files->at(_count - 1);
+                n += deleteFile(filename);
+            }
+        }
+        delete (files);
     }
-
     return n;
 }
 
@@ -275,7 +308,6 @@ uint32_t TLTFileUtils::listFile(const String filename)
           size = fsize.toInt();
         }
     }
-
     return size;
 }
 
@@ -313,19 +345,19 @@ uint32_t TLTFileUtils::fileCount()
 void TLTFileUtils::printFiles()
 {
     fileCount();
-    String files[_count];
-
+    std::vector<String> *files = new std::vector<String>;
     Serial.print(_count);
     Serial.print(_count == 1 ? " file" : " files");
     Serial.println(" found.");
 
     listFiles(files);
-
-    for (auto f : files) {
+    for (int i = 0; i <_count; i++)
+    {
         Serial.print("File: ");
-        Serial.print(f);
+        Serial.print(files->at(i));
         Serial.print(" - Size: ");
-        Serial.print(listFile(f));
+        Serial.print(listFile(files->at(i)));
         Serial.println();
     }
+    delete (files);
 }

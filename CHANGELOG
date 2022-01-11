@@ -1,5 +1,9 @@
 TLT 0.0.0 - ????.??.??
 
+TLT 1.3.0 - 2022.01.11
+* added debug functionality 
+* code cleanup + general improvements
+
 TLT 1.2.0 - 2021.10.14
 * GNSS formatting utilities and example
 * file utils improvements and example

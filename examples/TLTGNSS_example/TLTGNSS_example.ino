@@ -16,9 +16,9 @@
 	For the sketch to work correctly, GNSS should be tested in open sky conditions to allow a fix. The fix may take a few minutes.
 
 
-  @version 
+  @version
     1.0.0
-  
+
   @note
 
   @author
@@ -43,7 +43,7 @@ void setup()
   Serial.begin(115200);
   _me310->begin(115200);
   delay(3000);
-  
+
   Serial.println("TLT GNSS example, enabling ME310 module");
 
   _me310->powerOn();
@@ -65,12 +65,12 @@ void loop()
 
   /*Fix 1.2 or 1.3 means valid fix*/
   if (gnssInfo.fix.toFloat() > 1.0)
-  { 
+  {
     Serial.println("");
     Serial.print("Fix valid, converting...");
     if (gnss.convertNMEA2Decimal(gnssInfo.latitude, gnssInfo.longitude, &lat, &lng))
     {
-      
+
       Serial.println("Conversion done!");
       Serial.println(lat, 6);
       Serial.println(lng, 6);
