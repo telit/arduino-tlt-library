@@ -11,7 +11,7 @@
     
   
   @version 
-    1.1.0
+    1.3.0
 
   @note
     Dependencies:
@@ -86,13 +86,13 @@ class TLTUDP : public UDP
         const char* _txHost;
         uint16_t _txPort;
         size_t _txSize;
-        uint8_t _txBuffer[512];
+        uint8_t _txBuffer[1500];
         
         IPAddress _rxIp;
         uint16_t _rxPort;
         size_t _rxSize;
         size_t _rxIndex;
-        uint8_t _rxBuffer[512];
+        uint8_t _rxBuffer[1500];
 
         ME310* _me310;
         ME310::return_t _rc;

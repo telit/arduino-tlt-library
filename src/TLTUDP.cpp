@@ -13,7 +13,7 @@
      
 
   @version 
-    1.1.0
+    1.3.0
   
   @note
     Dependencies:
@@ -259,6 +259,11 @@ int TLTUDP::parsePacket()
         return 0;
     }
 
+    if (_me310->buffer_cstr(1) == NULL)
+    {
+        return 0;
+    }
+    
     String strSocket = _me310->buffer_cstr(1);
     if(strSocket.endsWith(",0"))
     {
@@ -271,28 +276,42 @@ int TLTUDP::parsePacket()
     }
     
     _rc = _me310->socket_info();
-    String socketInfo = _me310->buffer_cstr(1);
-    int recvDataSize = CheckData(socketInfo);
-    if(recvDataSize == 0)
+    if(_rc ==  ME310::RETURN_VALID)
+    {
+        String socketInfo = _me310->buffer_cstr(1);
+        int recvDataSize = CheckData(socketInfo);
+        if(recvDataSize == 0)
+        {
+            return 0;
+        }
+        if(recvDataSize > 1500)
+        {
+            recvDataSize = 1500;
+        }
+        uint8_t* response;
+        
+        _rc = _me310->socket_receive_data_command_mode(_socket, recvDataSize, 1);
+        if (_rc != ME310::RETURN_VALID && _rc != ME310::RETURN_CONTINUE)
+        {
+            return 0;
+        }
+        response = (uint8_t*)_me310->buffer_cstr_raw();
+        _rxIndex = 0;
+        _rxSize = recvDataSize;
+        if(response != NULL)
+        {
+            memcpy(_rxBuffer, response, _rxSize);
+            return _rxSize;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
     {
         return 0;
     }
-    if(recvDataSize > 1500)
-    {
-        recvDataSize = 1500;
-    }
-    uint8_t* response;
-    
-    _rc = _me310->socket_receive_data_command_mode(_socket, recvDataSize, 1);
-    if (_rc != ME310::RETURN_VALID && _rc != ME310::RETURN_CONTINUE)
-    {
-        return 0;
-    }
-    response = (uint8_t*)_me310->buffer_cstr_raw();
-    _rxIndex = 0;
-    _rxSize = recvDataSize;
-    memcpy(_rxBuffer, response, _rxSize);
-    return _rxSize;
 }
 
 //! \brief Client UDP Available

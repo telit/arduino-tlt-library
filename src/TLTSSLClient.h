@@ -11,7 +11,7 @@
     
   
   @version 
-    1.1.0
+    1.3.0
 
   @note
     Dependencies:
@@ -53,9 +53,9 @@ class TLTSSLClient : public TLTClient
 {
     public:
 
-        TLTSSLClient(ME310* me310, bool synch = true);
-        TLTSSLClient(ME310* me310, const TLTRootCert* myRCs, int myNumRCs, int version = PROTOCOL_VERSION_TLS_1_3, int SNI = SNI_OFF, bool synch = true);
-        TLTSSLClient(ME310* me310, int version, int SNI,  bool synch = true);
+        TLTSSLClient(ME310* me310, bool synch = true, bool debug = false);
+        TLTSSLClient(ME310* me310, const TLTRootCert* myRCs, int myNumRCs, int version = PROTOCOL_VERSION_TLS_1_3, int SNI = SNI_OFF, bool synch = true, bool debug = false);
+        TLTSSLClient(ME310* me310, int version, int SNI,  bool synch = true, bool debug = false);
         virtual ~TLTSSLClient();
 
         virtual int ready();
@@ -63,6 +63,11 @@ class TLTSSLClient : public TLTClient
 
         virtual int connect(IPAddress ip, uint16_t port);
         virtual int connect(const char* host, uint16_t port);
+        bool getDebug();
+        void setDebug(bool debug);
+
+        int getReadyState();
+        void printReadyState();
     
     private:
 
@@ -75,12 +80,11 @@ class TLTSSLClient : public TLTClient
         int _state;
         int _version;
         int _SNI;
-
-        int moduleReady();
-
-
+        bool _debug; 
         ME310* _me310;
         ME310::return_t _rc;
+
+        int moduleReady();
 };
 
 #endif //__TLTSSLCLIENT__H

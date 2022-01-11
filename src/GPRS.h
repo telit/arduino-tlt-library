@@ -11,7 +11,7 @@
     
   
   @version 
-    1.1.0
+    1.3.0
 
   @note
     Dependencies:
@@ -41,7 +41,7 @@ class GPRS
 {
     public:
 
-        GPRS(ME310* me310);
+        GPRS(ME310* me310, bool debug = false);
         virtual ~GPRS();
 
         TLT_NetworkStatus_t networkAttach();
@@ -54,6 +54,12 @@ class GPRS
         void setTimeout(unsigned long timeout);
         TLT_NetworkStatus_t status();
 
+        bool getDebug();
+        void setDebug(bool debug);
+
+        int getReadyState();
+        void printReadyState();
+
     private:
 
         int moduleReady();
@@ -62,6 +68,7 @@ class GPRS
         String _response;
         int _pingResult;
         unsigned long _timeout;
+        bool _debug;
 
         ME310* _me310;
         ME310::return_t _rc;

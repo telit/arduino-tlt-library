@@ -34,9 +34,9 @@
 unsigned int localPort = 2500;      // local port to listen for UDP packets
 
 const char timeServer[] = "0.it.pool.ntp.org";
-unsigned short hostPort = 123; 
+unsigned short hostPort = 123;
 
-const int timeZone = 2;    
+const int timeZone = 2;
 time_t prevDisplay = 0; // when the digital clock was displayed
 
 const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
@@ -55,7 +55,7 @@ void setup()
 {
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
-  myME310->begin(115200); 
+  myME310->begin(115200);
   delay(1000);
   myME310->powerOn(ON_OFF);
   delay(5000);
@@ -80,7 +80,7 @@ void setup()
   }
 
   Serial.println(F("Starting connection to server..."));
-  Udp.begin(localPort); 
+  Udp.begin(localPort);
   Serial.println(F("Waiting for sync..."));
   setSyncProvider(getNtpTime);
 }
@@ -105,12 +105,12 @@ void digitalClockDisplay()
   Serial.print("/");
   Serial.print(month());
   Serial.print("/");
-  Serial.print(day()); 
-  Serial.print(" "); 
+  Serial.print(day());
+  Serial.print(" ");
   Serial.print(hour());
   printDigits(minute());
   printDigits(second());
-  Serial.println();  
+  Serial.println();
 }
 
 void printDigits(int digits)
@@ -151,7 +151,7 @@ time_t getNtpTime()
 // send an NTP request to the time server at the given address
 unsigned long sendNTPpacket(const char* address)
 {
-  
+
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
   // Initialize values needed to form NTP request
@@ -172,5 +172,5 @@ unsigned long sendNTPpacket(const char* address)
   // you can send a packet requesting a timestamp:
   Udp.beginPacket(address, hostPort); //NTP requests are to port 123
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
-  Udp.endPacket();
+  return Udp.endPacket();
 }

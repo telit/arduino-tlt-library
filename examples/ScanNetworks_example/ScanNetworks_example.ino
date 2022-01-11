@@ -11,9 +11,9 @@
   @details
      This example sketch prints the IMEI number of the modem, then check if it is connected to an operator.\n
      It then scans nearby networks and prints their signal strength.
-  @version 
+  @version
     1.0.0
-  
+
   @note
 
   @author

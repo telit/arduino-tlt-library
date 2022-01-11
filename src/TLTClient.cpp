@@ -12,7 +12,7 @@
      
 
   @version 
-    1.1.0
+    1.3.0
   
   @note
     Dependencies:
@@ -50,8 +50,20 @@ enum
  * \param me310 pointer of ME310 class
  * \param synch value of synchronous.
  */
-TLTClient::TLTClient(ME310* me310, bool synch) :TLTClient(me310, -1, synch)
-{}
+TLTClient::TLTClient(ME310* me310, bool synch, bool debug):
+  _synch(synch),
+  _socket(-1),
+  _connected(false),
+  _state(CLIENT_STATE_IDLE),
+  _ip((uint32_t)0),
+  _host(NULL),
+  _port(0),
+  _ssl(false),
+  _writeSync(true),
+  _debug(debug)
+{
+  _me310 = me310;
+}
 
 //! \brief Class Constructor
 /*!
@@ -59,7 +71,7 @@ TLTClient::TLTClient(ME310* me310, bool synch) :TLTClient(me310, -1, synch)
  * \param socket socket id value
  * \param synch value of synchronous.
  */
-TLTClient::TLTClient(ME310* me310, int socket, bool synch) :
+TLTClient::TLTClient(ME310* me310, int socket, bool synch, bool debug) :
   _synch(synch),
   _socket(socket),
   _connected(false),
@@ -68,7 +80,8 @@ TLTClient::TLTClient(ME310* me310, int socket, bool synch) :
   _host(NULL),
   _port(0),
   _ssl(false),
-  _writeSync(true)
+  _writeSync(true),
+  _debug(debug)
 {
   _me310 = me310;
 }
@@ -88,6 +101,11 @@ int TLTClient::ready()
   if (ready == 0) 
   {
     return 0;
+  }
+
+  if(_debug)
+  {
+    printReadyState();
   }
 
   switch (_state) 
@@ -255,6 +273,7 @@ This method calls connect method, sets host value and port, SSL value is false.
  */
 int TLTClient::connect(const char *host, uint16_t port)
 {
+ 
   _ip = (uint32_t)0;
   _host = host;
   _port = port;
@@ -288,7 +307,7 @@ int TLTClient::connect()
   String strSocket;
   if(_ssl)
   {
-    _me310->ssl_socket_status(1);
+    _rc = _me310->ssl_socket_status(1);
     strSocket = _me310->buffer_cstr(1);
     if(strSocket.endsWith(",0"))
     {
@@ -635,4 +654,69 @@ int TLTClient::moduleReady()
     {
         return 0;
     }
+}
+
+/*DEBUG*/
+//!\brief Get debug parameter value.
+/*! \details 
+This method gets debug parameter value.
+ *\return debug parameter value.
+*/
+bool TLTClient::getDebug()
+{
+    return _debug;
+}
+
+//!\brief Set debug parameter value.
+/*! \details 
+This method sets debug parameter value.
+ *\param debug true to enable debugging, false disable debugging.
+ */
+void TLTClient::setDebug(bool debug)
+{
+    _debug = debug;
+}
+
+//!\brief Get ready state.
+/*! \details 
+This method gets ready state.
+ *\return ready state parameter value.
+ */
+int TLTClient::getReadyState()
+{
+    return _state;
+}
+
+//!\brief Print ready state string.
+/*! \details 
+This method prints ready state string.
+ */
+void TLTClient::printReadyState()
+{
+  switch (_state)
+  {
+    case CLIENT_STATE_IDLE:
+        Serial.println("CLIENT_STATE_IDLE");
+        break;
+    case CLIENT_STATE_CREATE_SOCKET:
+        Serial.println("CLIENT_STATE_CREATE_SOCKET");
+        break;
+    case CLIENT_STATE_WAIT_CREATE_SOCKET_RESPONSE:
+        Serial.println("CLIENT_STATE_WAIT_CREATE_SOCKET_RESPONSE");
+        break;
+    case CLIENT_STATE_CONNECT:
+        Serial.println("CLIENT_STATE_CONNECT");
+        break;
+    case CLIENT_STATE_CLOSE_SOCKET:
+        Serial.println("CLIENT_STATE_CLOSE_SOCKET");
+        break;
+    case CLIENT_STATE_WAIT_CLOSE_SOCKET:
+        Serial.println("CLIENT_STATE_WAIT_CLOSE_SOCKET");
+        break;
+    case CLIENT_STATE_RETRIEVE_ERROR:
+        Serial.println("CLIENT_STATE_RETRIEVE_ERROR");
+        break;
+    default:
+        break;
+  }
 }

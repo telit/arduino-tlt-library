@@ -9,7 +9,7 @@
     Web client
 
   @details
-    This sketch connects to a server using sockets through the board.\n 
+    This sketch connects to a server using sockets through the board.\n
     Specifically, this example connects to echo server "modules.telit.com" and prints the response to the Serial monitor.
 
   @version

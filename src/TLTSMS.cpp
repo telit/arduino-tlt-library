@@ -14,7 +14,7 @@
      In particular: send and read SMS.
 
   @version 
-    1.1.0
+    1.3.0
   
   @note
     Dependencies:
@@ -298,14 +298,10 @@ int TLTSMS::endSMS()
     int r;
     if (_smsTxActive)
     {
-        // Echo remaining content of UTF8 buffer, empty if no conversion
         _indexUTF8 = 0;
         char toda[] = "145";
-        _rc = _me310->send_short_message(_toBuffer.c_str(), toda, (char*) _dataBuffer.c_str(),ME310::TOUT_3SEC);
-        if (!_synch)
-        {
-            //_rc = moduleReady();
-        }
+        _rc = _me310->send_short_message((const char*)_toBuffer.c_str(), (const char*) toda, (char*) _dataBuffer.c_str(),ME310::TOUT_3SEC);
+        
         return _rc;
     }
     else

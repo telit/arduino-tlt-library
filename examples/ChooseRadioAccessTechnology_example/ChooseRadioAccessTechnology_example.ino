@@ -9,7 +9,7 @@
     Sample test of the use of Radio Access Technology selection for Arduino with TLTMDM.\n
 
   @details
-    
+
     This sketch shows how to select a network operator and register the module via the ME310 library.\n
     You can choose among CAT-M1, NB-IoT or a combination of both.\n
     LTE technology supported:
@@ -18,9 +18,9 @@
       - CAT-M1 (preferred) and NB-IoT (2)
       - CAT-M1 and NB-IoT (preferred) (3)
 
-  @version 
+  @version
     1.1.0
-  
+
   @note
 
   @author
@@ -71,7 +71,7 @@ void loop() {
 
   Serial.print("> ");
 
-  Serial.setTimeout(-1);
+  Serial.setTimeout(0);
   while (Serial.available() == 0);
   String uratInput = Serial.readStringUntil('\n');
   uratInput.trim();
@@ -135,6 +135,6 @@ bool apply()
   } while (rc != ME310::RETURN_VALID);
 
   Serial.println("done.");
-  
+
   return true;
 }

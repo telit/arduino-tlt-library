@@ -9,7 +9,7 @@
     SSL Web client
 
   @details
-    This sketch connects to a website using SSL through the board.\n 
+    This sketch connects to a website using SSL through the board.\n
     Specifically, this example downloads the URL "www.telit.com" and prints it to the Serial monitor.
 
   @version
@@ -76,7 +76,7 @@ void setup() {
   {
     //Serial.println(F("connected"));
     // Make a HTTP request:
-    
+
     client.println("GET / HTTP/1.1\r\nHost: telit.com\r\nConnection: close\r\n");
   }
   else

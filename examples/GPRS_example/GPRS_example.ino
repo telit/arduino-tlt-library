@@ -9,13 +9,13 @@
     Sample test of the use of ability to connect to a GPRS network.
 
   @details
-    This sketch tests  board's ability to connect to a GPRS network. It asks for APN information through 
+    This sketch tests  board's ability to connect to a GPRS network. It asks for APN information through
     the serial monitor and tries to connect to example.org.
 
 
-  @version 
+  @version
     1.0.0
-  
+
   @note
 
   @author
@@ -37,7 +37,7 @@ TLT tltAccess(myME310);
 // messages for serial monitor response
 String oktext = "OK";
 String errortext = "ERROR";
-char APN[]= "web.omnitel.it";
+char APN[]= "APN";
 
 // URL and path (for example: example.org)
 char url[] = "example.org";
@@ -69,7 +69,6 @@ void loop() {
   if ((tltAccess.begin(0, APN, true) == READY))
   {
     Serial.println(errortext);
-    while (true);
   }
   Serial.println(oktext);
 
@@ -127,7 +126,7 @@ void loop() {
       if (use_proxy)
       {
         client.print(urlproxy);
-      } 
+      }
       else
       {
         client.print(path);

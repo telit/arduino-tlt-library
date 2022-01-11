@@ -54,7 +54,7 @@ void setup() {
   while (!connected) {
     if (TLTAccess.begin() == READY)
     {
-      connected = true;      
+      connected = true;
       Serial.println(F(""));
     }
     else
